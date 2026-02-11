@@ -1,0 +1,63 @@
+services:
+  # in dev environment i am using one pg instance for all services as i have only 8gb of ram
+  # but different schemas are used per service
+  jmarket_db:
+    image: postgres:17
+    container_name: jmarket-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: jmarket-db
+      PGDATA: /var/lib/postgresql/data/pg_data
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data/pg_data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "postgres", "-p", "5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.6
+    container_name: jmarket-kc
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    environment:
+      JAVA_OPTS: -Dkeycloak.migration.userExportStrategy=REALM_FILE
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://jmarket_db:5432/jmarket-db?currentSchema=keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+    volumes:
+      - ./infrastructure/keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
+    depends_on:
+      jmarket_db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl", "-fsS", "http://localhost:9000/healthy/ready", "||", "exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  nexus:
+    image: sonatype/nexus3:3.89.0
+    container_name: jmarket-nexus
+    ports:
+      - "8081:8081"
+    environment:
+      NEXUS_SECURITY_INITIAL_PASSWORD: admin
+      NEXUS_SECURITY_RANDOMPASSWORD: false
+    volumes:
+      - ./nexus_data:/nexus_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/service/rest/v1/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+volumes:
+  pg_data:
+  nexus_data:
