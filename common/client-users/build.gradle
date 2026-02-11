@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id "maven-publish"
+    id "org.openapi.generator" version "${openApiGeneratorVersion}"
+}
+
+group = 'uz.uzumtech.common'
+version = '1.0.0'
+description = 'client-users'
+
+apply from: "./gradle/openApiGenerator.gradle"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+    implementation "jakarta.annotation:jakarta.annotation-api"
+    testImplementation "jakarta.servlet:jakarta.servlet-api"
+    implementation "org.openapitools:jackson-databind-nullable:$jacksonNullableVersion"
+
+    // Tools
+    implementation "io.swagger.core.v3:swagger-models:$swaggerModelsVersion"
+    implementation "commons-codec:commons-codec:$commonsCodecVersion"
+    implementation "io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "nexus"
+            url = uri(System.getenv("NEXUS_URL") ?: "http://localhost:8081/repository/maven-releases/")
+            allowInsecureProtocol = true
+            credentials {
+                username = System.getenv("NEXUS_USERNAME") ?: "admin"
+                password = System.getenv("NEXUS_PASSWORD") ?: "admin"
+            }
+        }
+    }
+}

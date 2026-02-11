@@ -1,0 +1,12 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: users-service
+  jackson:
+    serialization:
+      indent-output: false
+  profiles:
+    include:
+      - db

@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: User Service API
+  version: 1.0.0
+  description: >
+    REST API for managing users
+
+servers:
+  - url: https://localhost:8000
+
+tags:
+  - name: Internal API
+    description: User service synchronous API
+  - name: Async API
+    description: User service asynchronous API
+
+paths:
+  /users:
+    get:
+      operationId: usersGet
+      responses:
+        '200':
+          description: 'ok'
+
+components:
+  schemas:
+    UserResponse:
+      type: object
+      required: [ name ]
+      properties:
+        name:
+          type: string

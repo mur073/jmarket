@@ -1,0 +1,54 @@
+sourceSets {
+    generatedApi {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+        resources {
+            srcDir layout.buildDirectory.dir('generated/src/main/resources')
+        }
+    }
+}
+
+tasks.register('generatedApiJar', Jar) {
+    dependsOn 'openApiGenerate'
+    archiveBaseName = 'users-api'
+    archiveClassifier = 'api'
+    from sourceSets.generatedApi.output
+}
+
+
+var spec = "$rootDir/specs/UserService.yaml"
+var generatedSourcesDir = layout.buildDirectory.dir('generated').get().asFile.absolutePath
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = spec
+    outputDir = generatedSourcesDir
+    apiPackage = "uz.uzumtech.generated.api"
+    modelPackage = "uz.uzumtech.generated.dto"
+    invokerPackage = "uz.uzumtech.generated.invoker"
+    configOptions = [
+            useBeanValidation   : "true",
+            delegatePattern     : "true",
+            useJakartaValidation: "true",
+            useSpringBoot3      : "true",
+            generateBuilders    : "true"
+    ]
+    ignoreFileOverride = "$rootDir/.openapi-generator-ignore"
+    modelNameSuffix = "Dto"
+}
+
+compileJava.dependsOn 'openApiGenerate'
+sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/src/main/java').get().asFile
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+    }
+    test {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+    }
+}
