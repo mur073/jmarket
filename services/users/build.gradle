@@ -1,0 +1,173 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id("maven-publish")
+    id "org.openapi.generator" version "${openApiGeneratorVersion}"
+}
+
+group = 'uz.uzumtech'
+version = '1.0.0'
+description = 'users'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+
+dependencies {
+    implementation "uz.uzumtech.common:common-error:${commonErrorVersion}"
+
+    // Spring
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+
+    // DB
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.postgresql:postgresql'
+    testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+    implementation "jakarta.annotation:jakarta.annotation-api"
+    testImplementation "jakarta.servlet:jakarta.servlet-api"
+    implementation "org.openapitools:jackson-databind-nullable:$jacksonNullableVersion"
+
+    // Tools
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation "io.swagger.core.v3:swagger-models:$swaggerModelsVersion"
+    implementation "commons-codec:commons-codec:$commonsCodecVersion"
+    implementation "io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    implementation "org.jeasy:easy-random-core:$easyRandomVersion"
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructProcessorVersion"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:$mapstructBindingVersion"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+
+// ============================================= //
+// ================== NEXUS ==================== //
+// ============================================= //
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "nexus"
+            url = uri(System.getenv("NEXUS_URL") ?: "http://localhost:8081/repository/maven-releases/")
+            allowInsecureProtocol = true
+            credentials {
+                username = System.getenv("NEXUS_USERNAME") ?: "admin"
+                password = System.getenv("NEXUS_PASSWORD") ?: "admin"
+            }
+        }
+    }
+}
+
+repositories {
+    maven {
+        url = uri("http://localhost:8081/repository/maven-releases/")
+        allowInsecureProtocol = true
+        credentials {
+            username = System.getenv("NEXUS_USERNAME") ?: "admin"
+            password = System.getenv("NEXUS_PASSWORD") ?: "admin"
+        }
+    }
+    mavenCentral()
+}
+
+sourceSets {
+    generatedApi {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+        resources {
+            srcDir layout.buildDirectory.dir('generated/src/main/resources')
+        }
+    }
+}
+
+tasks.register('generatedApiJar', Jar) {
+    dependsOn 'openApiGenerate'
+    archiveBaseName = 'users-api'
+    archiveClassifier = 'api'
+    from sourceSets.generatedApi.output
+}
+
+
+// ============================================= //
+// ============= OPENAPI GENERATOR ============= //
+// ============================================= //
+var spec = "$rootDir/specs/UserService.yaml"
+var generatedSourcesDir = layout.buildDirectory.dir('generated').get().asFile.absolutePath
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = spec
+    outputDir = generatedSourcesDir
+    apiPackage = "uz.uzumtech.generated.api"
+    modelPackage = "uz.uzumtech.generated.dto"
+    invokerPackage = "uz.uzumtech.generated.invoker"
+    configOptions = [
+            useBeanValidation   : "true",
+            delegatePattern     : "true",
+            useJakartaValidation: "true",
+            useSpringBoot3      : "true",
+            generateBuilders    : "true"
+    ]
+    ignoreFileOverride = "$rootDir/.openapi-generator-ignore"
+    modelNameSuffix = "Dto"
+}
+
+compileJava.dependsOn 'openApiGenerate'
+sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/src/main/java').get().asFile
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+    }
+    test {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+    }
+}
