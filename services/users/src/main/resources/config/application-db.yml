@@ -18,12 +18,12 @@ spring:
       connection-timeout: 20000
       max-lifetime: 1200000
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
-      open-in-view: false
       naming:
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
-        physical-strategy: org.hibernate.boot.naming.CamelCaseToUnderscoreNamingStrategy
+        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
       properties:
         hibernate:
           show_sql: true
