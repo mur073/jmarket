@@ -1,0 +1,13 @@
+server:
+  port: 8001
+
+spring:
+  application:
+    name: products-service
+  jackson:
+    serialization:
+      indent-output: false
+  profiles:
+    include:
+      - security
+      - db
