@@ -225,9 +225,8 @@ components:
         merchantId:
           type: string
           format: uuid
-        categoryId:
-          type: string
-          format: uuid
+        category:
+          $ref: "#/components/schemas/CategoryResponse"
         title:
           type: string
         description:

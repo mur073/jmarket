@@ -1,21 +1,17 @@
 package uz.uzumtech.jmarket.products.security;
 
-import org.springframework.security.core.Authentication;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 import uz.uzumtech.common.error.exception.UnauthorizedException;
 
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 public class SecurityUtils {
 
     private SecurityUtils() {
-    }
-
-    public static Optional<UUID> getCurrentUser() {
-        var context = SecurityContextHolder.getContext();
-        return Optional.ofNullable(extractCurrentUser(context.getAuthentication()));
     }
 
     public static UUID getCurrentUserOrThrow() {
@@ -23,11 +19,18 @@ public class SecurityUtils {
                 .orElseThrow(() -> new UnauthorizedException("Unauthorized"));
     }
 
-    private static UUID extractCurrentUser(Authentication authentication) {
-        if (!(authentication instanceof JwtAuthenticationToken jwt)) {
-            return null;
+    public static Optional<UUID> getCurrentUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        try {
+            if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+                return Optional.ofNullable(jwt.getClaimAsString("preferred_username"))
+                        .map(UUID::fromString);
+            }
+        } catch (Exception e) {
+            log.error("SecurityUtils: unauthorized error: {}", e.getMessage());
         }
 
-        return UUID.fromString(jwt.getToken().getClaim("sub"));
+        throw new UnauthorizedException("Unauthorized");
     }
 }

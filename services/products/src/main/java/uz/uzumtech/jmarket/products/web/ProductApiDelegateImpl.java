@@ -3,6 +3,7 @@ package uz.uzumtech.jmarket.products.web;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import uz.uzumtech.jmarket.products.generated.api.ProductsApiDelegate;
 import uz.uzumtech.jmarket.products.generated.dto.ProductCreateRequestDto;
@@ -26,6 +27,7 @@ public class ProductApiDelegateImpl implements ProductsApiDelegate {
     private final ProductService service;
 
     @Override
+    @PreAuthorize("hasRole('merchant')")
     public ResponseEntity<ProductResponseDto> createProduct(ProductCreateRequestDto request) {
         log.info("REST: createProduct request");
         return ok(service.createProduct(request));
@@ -38,6 +40,7 @@ public class ProductApiDelegateImpl implements ProductsApiDelegate {
     }
 
     @Override
+    @PreAuthorize("hasRole('merchant')")
     public ResponseEntity<Void> productUpdate(UUID productId, ProductUpdateRequestDto request) {
         log.info("REST: productUpdate request for productId = {}", productId);
         service.updateProduct(productId, request);

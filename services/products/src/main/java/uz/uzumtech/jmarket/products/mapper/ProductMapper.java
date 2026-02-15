@@ -34,7 +34,6 @@ public interface ProductMapper {
     @Mapping(target = "price", source = "price", qualifiedByName = "mapPrice")
     Product toProductEntity(ProductCreateRequestDto request);
 
-    @Mapping(target = "categoryId", source = "category.id")
     @Mapping(target = "price", source = "price", qualifiedByName = "mapPrice")
     ProductResponseDto toProductDto(Product product);
 

@@ -27,6 +27,8 @@ import static ch.qos.logback.core.util.StringUtil.notNullNorEmpty;
 import static java.util.Objects.nonNull;
 import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_INVALID_CATEGORY;
 import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_PRODUCT_NOT_FOUND;
+import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_REVIEW_EXISTS;
+import static uz.uzumtech.jmarket.products.security.SecurityUtils.getCurrentUserOrThrow;
 
 @Slf4j
 @Service
@@ -41,12 +43,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponseDto createProduct(ProductCreateRequestDto request) {
-        log.info("Service: createProduct");
+        var currentUser = getCurrentUserOrThrow();
+        log.info("Service: createProduct userId = {}", currentUser);
+
         var category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CommonException(ERROR_INVALID_CATEGORY));
 
         var product = mapper.toProductEntity(request);
 
+        product.setMerchantId(currentUser);
         product.setCategory(category);
 
         return mapper.toProductDto(productRepository.save(product));
@@ -54,6 +59,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ReviewPageResponseDto getProductReviews(UUID productId, Integer page, Integer size) {
+        log.info("Service: getProductReviews for productId = {}", productId);
+
         var pageRequest = PageRequest.of(page, size);
         var reviews = reviewRepository.findByProduct_Id(productId, pageRequest);
 
@@ -69,6 +76,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void updateProduct(UUID productId, ProductUpdateRequestDto request) {
+        var currentUser = getCurrentUserOrThrow();
+        log.info("Service: updateProduct for productId = {} by userId = {}", productId, currentUser);
+
         var product = productRepository.findById(productId)
                 .orElseThrow(() -> new CommonException(ERROR_PRODUCT_NOT_FOUND));
 
@@ -91,12 +101,11 @@ public class ProductServiceImpl implements ProductService {
         if (nonNull(request.getIsActive())) {
             product.setIsActive(request.getIsActive());
         }
-
-        // save ???
     }
 
     @Override
     public ProductPageResponseDto getProducts(UUID categoryId, UUID merchantId, Integer page, Integer size) {
+        log.info("Service: getProducts by categoryId = {} and merchantId = {}", categoryId, merchantId);
         var pageRequest = PageRequest.of(page, size);
         var products = productRepository
                 .findAll(getProductsSpecs(categoryId, merchantId), pageRequest);
@@ -112,14 +121,36 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponseDto getProductById(UUID productId) {
+        log.info("Service: getProductById for productId = {}", productId);
         return productRepository.findById(productId)
                 .map(mapper::toProductDto)
                 .orElseThrow(() -> new CommonException(ERROR_PRODUCT_NOT_FOUND));
     }
 
     @Override
+    @Transactional
     public ReviewResponseDto createProductReview(UUID productId, ReviewCreateRequestDto request) {
-        return null;
+        log.info("Service: createProductReview for productId = {}", productId);
+        var currentUser = getCurrentUserOrThrow();
+        var product = productRepository.findById(productId)
+                .orElseThrow(() -> new CommonException(ERROR_PRODUCT_NOT_FOUND));
+
+        var existing = reviewRepository.findByCustomerIdAndProductId(currentUser, productId);
+        if (existing.isPresent()) {
+            throw new CommonException(ERROR_REVIEW_EXISTS);
+        }
+
+        var rating = product.getAverageRating() * product.getReviewCount() + request.getRating();
+        var reviewsCount = product.getReviewCount() + 1;
+
+        product.setReviewCount(reviewsCount);
+        product.setAverageRating(rating / reviewsCount);
+
+        var review = mapper.toReviewEntity(request);
+        review.setCustomerId(currentUser);
+        review.setProduct(product);
+
+        return mapper.toReviewDto(reviewRepository.save(review));
     }
 
     private Specification<Product> getProductsSpecs(UUID categoryId, UUID merchantId) {
