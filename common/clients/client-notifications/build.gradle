@@ -6,9 +6,9 @@ plugins {
     id "org.openapi.generator" version "${openApiGeneratorVersion}"
 }
 
-group = 'uz.uzumtech'
-version = '1.0.0'
-description = 'users'
+group = 'uz.uzumtech.common'
+version = '1.0.2'
+description = 'client-notifications'
 
 apply from: "./gradle/openApiGenerator.gradle"
 
@@ -30,25 +30,14 @@ dependencyManagement {
     }
 }
 
+repositories {
+    mavenCentral()
+}
 
 dependencies {
-    // Common
-    implementation "uz.uzumtech.common:common-error:${commonErrorVersion}"
-    implementation "uz.uzumtech.common:client-notifications:${clientNotificationsVersion}"
-
     // Spring
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-
-    // DB
-    implementation 'org.flywaydb:flyway-database-postgresql'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-flyway'
-    runtimeOnly 'org.postgresql:postgresql'
-    testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 
     // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -57,13 +46,7 @@ dependencies {
     testImplementation "jakarta.servlet:jakarta.servlet-api"
     implementation "org.openapitools:jackson-databind-nullable:$jacksonNullableVersion"
 
-    // Jwt
-    implementation "io.jsonwebtoken:jjwt-api:$jjwtVersion"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl:$jjwtImplVersion"
-    runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jjwtJacksonVersion"
-
     // Tools
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation "io.swagger.core.v3:swagger-models:$swaggerModelsVersion"
     implementation "commons-codec:commons-codec:$commonsCodecVersion"
     implementation "io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion"
@@ -71,13 +54,8 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "org.mapstruct:mapstruct:$mapstructVersion"
-    implementation "org.jeasy:easy-random-core:$easyRandomVersion"
     compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.projectlombok:lombok'
-    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructProcessorVersion"
-    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:$mapstructBindingVersion"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -99,14 +77,30 @@ def loadDotEnv() {
 
 loadDotEnv()
 
-repositories {
-    maven {
-        url = uri(System.getProperty("NEXUS_REPOSITORY_URL"))
-        allowInsecureProtocol = true
-        credentials {
-            username = System.getProperty("NEXUS_USERNAME")
-            password = System.getProperty("NEXUS_PASSWORD")
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
         }
     }
-    mavenCentral()
+
+    repositories {
+        maven {
+            name = "nexus"
+            url = uri(System.getProperty("NEXUS_REPOSITORY_URL"))
+            allowInsecureProtocol = true
+            credentials {
+                username = System.getProperty("NEXUS_USERNAME")
+                password = System.getProperty("NEXUS_PASSWORD")
+            }
+        }
+    }
 }

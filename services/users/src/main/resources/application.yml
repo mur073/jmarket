@@ -1,5 +1,13 @@
 server:
   port: 8000
+  servlet:
+    context-path: /api/v1
+
+feign:
+  client:
+    config:
+      notifications-client:
+        loggerLevel = full
 
 spring:
   application:
@@ -10,4 +18,5 @@ spring:
   profiles:
     include:
       - db
-      - security
+      - app
+      - data

@@ -6,4 +6,4 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/jmarket
+          issuer-uri: ${KC_ISSUER_URI}

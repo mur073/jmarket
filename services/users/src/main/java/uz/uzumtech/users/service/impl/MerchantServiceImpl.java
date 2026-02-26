@@ -14,6 +14,7 @@ import uz.uzumtech.users.mapper.UserMapper;
 import uz.uzumtech.users.repository.MerchantRepository;
 import uz.uzumtech.users.repository.UserRepository;
 import uz.uzumtech.users.service.MerchantService;
+import uz.uzumtech.users.service.NotificationService;
 
 import java.util.UUID;
 
@@ -29,6 +30,7 @@ import static uz.uzumtech.users.generated.dto.UserRoleDto.MERCHANT;
 @RequiredArgsConstructor
 public class MerchantServiceImpl implements MerchantService {
 
+    private final NotificationService notificationService;
     private final MerchantRepository merchantRepository;
     private final UserRepository userRepository;
     private final UserMapper mapper;
@@ -86,7 +88,7 @@ public class MerchantServiceImpl implements MerchantService {
 
         if (request.getStatus() == MerchantVerificationStatusDto.VERIFIED) {
             log.info("Service: Send merchant verified notification for merchantId = {}", merchantId);
-            // send notification to merchant
+            notificationService.merchantVerified(profile.getId(), profile.getUser().getEmail());
         }
     }
 }

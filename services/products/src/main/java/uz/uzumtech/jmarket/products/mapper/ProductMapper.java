@@ -4,10 +4,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
-import uz.uzumtech.jmarket.products.entity.Category;
 import uz.uzumtech.jmarket.products.entity.Product;
 import uz.uzumtech.jmarket.products.entity.Review;
-import uz.uzumtech.jmarket.products.generated.dto.CategoryResponseDto;
 import uz.uzumtech.jmarket.products.generated.dto.ProductCreateRequestDto;
 import uz.uzumtech.jmarket.products.generated.dto.ProductResponseDto;
 import uz.uzumtech.jmarket.products.generated.dto.ReviewCreateRequestDto;
@@ -17,11 +15,10 @@ import java.time.Instant;
 
 @Mapper(
         componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.WARN
+        unmappedTargetPolicy = ReportingPolicy.WARN,
+        uses = {CategoryMapper.class}
 )
 public interface ProductMapper {
-
-    CategoryResponseDto toCategoryDto(Category category);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

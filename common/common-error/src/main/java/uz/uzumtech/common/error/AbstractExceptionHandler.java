@@ -2,19 +2,23 @@ package uz.uzumtech.common.error;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uz.uzumtech.common.error.dto.ErrorResponse;
 import uz.uzumtech.common.error.exception.CommonException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 import static uz.uzumtech.common.error.core.ErrorConstants.CODE_BAD_REQUEST;
+import static uz.uzumtech.common.error.core.ErrorConstants.CODE_FORBIDDEN;
 import static uz.uzumtech.common.error.core.ErrorConstants.CODE_INTERNAL_SERVER_ERROR;
 import static uz.uzumtech.common.error.core.ErrorConstants.CODE_METHOD_NOT_ALLOWED;
 
@@ -75,6 +79,30 @@ public abstract class AbstractExceptionHandler {
                 .orElse("Method arguments not valid");
         ErrorResponse response = ErrorResponse.of(message);
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        log.warn("Caught AccessDeniedException: {}", ex.getMessage());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .code(CODE_FORBIDDEN)
+                .message(ex.getMessage())
+                .status(FORBIDDEN.value())
+                .build();
+        return ResponseEntity.status(response.status()).body(response);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex) {
+        log.warn("Caught NoResourceFoundException: {}", ex.getMessage());
+
+        ErrorResponse response = ErrorResponse.builder()
+                .code(CODE_BAD_REQUEST)
+                .message("Resource not exists")
+                .status(BAD_REQUEST.value())
+                .build();
+        return ResponseEntity.status(response.status()).body(response);
     }
 
     @ExceptionHandler(RuntimeException.class)

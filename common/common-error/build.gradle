@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'uz.uzumtech.common'
-version = '1.0.0'
+version = '1.0.2'
 description = 'common-error'
 
 java {
@@ -29,6 +29,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
@@ -48,6 +49,20 @@ tasks.named('jar') {
     enabled = true
 }
 
+def loadDotEnv() {
+    def envFile = file(".env")
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def parts = line.split("=", 2)
+            if (parts.size() == 2) {
+                System.setProperty(parts[0].trim(), parts[1].trim())
+            }
+        }
+    }
+}
+
+loadDotEnv()
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -66,11 +81,11 @@ publishing {
     repositories {
         maven {
             name = "nexus"
-            url = uri(System.getenv("NEXUS_URL") ?: "http://localhost:8081/repository/maven-releases/")
+            url = uri(System.getProperty("NEXUS_REPOSITORY_URL"))
             allowInsecureProtocol = true
             credentials {
-                username = System.getenv("NEXUS_USERNAME") ?: "admin"
-                password = System.getenv("NEXUS_PASSWORD") ?: "admin"
+                username = System.getProperty("NEXUS_USERNAME")
+                password = System.getProperty("NEXUS_PASSWORD")
             }
         }
     }

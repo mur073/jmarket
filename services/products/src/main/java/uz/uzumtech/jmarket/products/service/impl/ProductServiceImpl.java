@@ -79,7 +79,7 @@ public class ProductServiceImpl implements ProductService {
         var currentUser = getCurrentUserOrThrow();
         log.info("Service: updateProduct for productId = {} by userId = {}", productId, currentUser);
 
-        var product = productRepository.findById(productId)
+        var product = productRepository.findByIdAndMerchantId(productId, currentUser)
                 .orElseThrow(() -> new CommonException(ERROR_PRODUCT_NOT_FOUND));
 
         if (notNullNorEmpty(request.getTitle())) {

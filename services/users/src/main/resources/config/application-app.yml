@@ -1,0 +1,7 @@
+app:
+  client:
+    notifications:
+      user: murio
+      password: mgnimwiyodutzwfmos
+      name: notifications-service
+      url: http://217.29.121.129/notification_api

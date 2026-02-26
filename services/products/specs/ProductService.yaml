@@ -11,6 +11,17 @@ servers:
 paths:
   # Categories
   /categories:
+    parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
     get:
       tags:
         - Categories

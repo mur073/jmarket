@@ -6,8 +6,11 @@ spring:
     jpa:
       repositories:
         bootstrap-mode: deferred
+  flyway:
+    schemas: products
+    default-schema: products
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/jmarket-db?currentSchema=products}
+    url: ${SPRING_DATASOURCE_URL} # jdbc:postgresql://localhost:5432/jmarket-db?currentSchema=products
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -25,8 +28,10 @@ spring:
         implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
       properties:
-        hibernate:
-          show_sql: true
-          highlight_sql: true
-          query:
-            fail_on_pagination_over_collection_fetch: true
+        show_sql: true
+        highlight_sql: true
+        query:
+          fail_on_pagination_over_collection_fetch: true
+    properties:
+      hibernate:
+        default_schema: products

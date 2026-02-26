@@ -6,8 +6,11 @@ spring:
     jpa:
       repositories:
         bootstrap-mode: deferred
+  flyway:
+    schemas: users
+    default-schema: users
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/jmarket-db?currentSchema=users}
+    url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -30,3 +33,6 @@ spring:
           highlight_sql: true
           query:
             fail_on_pagination_over_collection_fetch: true
+    properties:
+      hibernate:
+        default_schema: users
