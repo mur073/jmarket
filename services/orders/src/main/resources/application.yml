@@ -1,0 +1,19 @@
+server:
+  port: 8002
+  servlet:
+    context-path: /api/v1
+  tomcat:
+    threads:
+      max: 50
+
+spring:
+  application:
+    name: orders-service
+  jackson:
+    serialization:
+      indent-output: false
+  profiles:
+    include:
+      - security
+      - db
+      - app

@@ -1,0 +1,201 @@
+openapi: 3.0.3
+info:
+  title: Orders Service API
+  version: 1.0.0
+  description: >
+    REST API for managing orders
+
+servers:
+  - url: https://localhost:8002
+
+paths:
+  /orders:
+    post:
+      tags:
+        - Orders
+      operationId: orderCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+    get:
+      tags:
+        - Orders
+      operationId: ordersGet
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPageResponse'
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      operationId: getOrderById
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /orders/{orderId}/status:
+    patch:
+      tags:
+        - Orders
+      operationId: updateOrderStatus
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdateRequest'
+      responses:
+        '200':
+          description: OK
+
+components:
+  schemas:
+    OrderCreateRequest:
+      type: object
+      required: [ shippingAddressId, items ]
+      properties:
+        shippingAddressId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItemRequest'
+    OrderItemRequest:
+      type: object
+      required: [ productId, quantity ]
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+    OrderResponse:
+      type: object
+      required: [ id, customerId, shippingAddressId, status, totalAmount, items, createdAt ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        shippingAddressId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        totalAmount:
+          type: number
+          format: double
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'
+        createdAt:
+          type: integer
+          format: int64
+    OrderItemResponse:
+      type: object
+      required: [ id, productId, merchantId, quantity, price ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double
+
+    OrderStatusUpdateRequest:
+      type: object
+      required: [ status ]
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+
+    OrderStatus:
+      type: string
+      enum:
+        - CREATED
+        - PAID
+        - SHIPPED
+        - DELIVERED
+        - CANCELLED
+
+    OrderPageResponse:
+      allOf:
+        - $ref: "#/components/schemas/PageResponse"
+        - properties:
+            items:
+              items:
+                $ref: "#/components/schemas/OrderResponse"
+    PageResponse:
+      type: object
+      required: [ page, size, items ]
+      properties:
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total_pages:
+          type: integer
+        total_items:
+          type: integer
+        items:
+          type: array
+          items:
+            type: object
+            properties: { }
