@@ -12,6 +12,7 @@ import uz.uzumtech.users.generated.dto.MerchantCreateRequestDto;
 import uz.uzumtech.users.generated.dto.MerchantProfileResponseDto;
 import uz.uzumtech.users.generated.dto.MerchantStatusUpdateRequestDto;
 import uz.uzumtech.users.generated.dto.ProfileIdTypeDto;
+import uz.uzumtech.users.generated.dto.RegisterCompensateRequestDto;
 import uz.uzumtech.users.generated.dto.RegisterRequestDto;
 import uz.uzumtech.users.generated.dto.UserResponseDto;
 import uz.uzumtech.users.service.CustomerService;
@@ -82,6 +83,13 @@ public class UserApiDelegateImpl implements UsersApiDelegate {
     public ResponseEntity<Void> setDefaultAddress(UUID userId, UUID addressId) {
         log.info("REST: setDefaultAddress: UserId = [{}], AddressId = [{}]", userId, addressId);
         customerService.setDefaultAddress(userId, addressId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> usersRegisterCompensate(RegisterCompensateRequestDto request) {
+        log.info("REST: usersRegisterCompensate for user = {}", request.getUserId());
+        userService.cancelRegister(request);
         return ResponseEntity.ok().build();
     }
 

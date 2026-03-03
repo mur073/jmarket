@@ -44,7 +44,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public AddressResponseDto addCustomerAddress(UUID userId, AddressCreateRequestDto request) {
         log.info("Service: addCustomerAddress for userId = {}", userId);
-        var customer = customerRepository.findById(userId).orElseThrow();
+        var customer = customerRepository.findByUserId(userId)
+                .orElseThrow(() -> new CommonException(ERROR_CUSTOMER_NOT_FOUND));
 
         if (customer.getAddresses().size() >= MAX_ADDRESSES) {
             throw new CommonException(ERROR_ADDRESS_LIMIT_EXCEEDED);
@@ -55,7 +56,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         if (TRUE.equals(request.getIsDefault()) || customer.getAddresses().isEmpty()) {
             newAddress.setIsDefault(true);
-            addressRepository.unsetAllDefaultsForCustomer(userId);
+            addressRepository.unsetAllDefaults(userId);
         }
 
         newAddress.setCustomer(customer);
@@ -68,15 +69,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public void deleteCustomerAddress(UUID userId, UUID addressId) {
         log.info("Service: deleteCustomerAddress for userId = {}", userId);
-        addressRepository.findByIdAndCustomerId(addressId, userId)
-                .ifPresent(addressRepository::delete);
+        addressRepository.deleteByIdAndUserId(addressId, userId);
     }
 
     @Override
     @Transactional
     public void setDefaultAddress(UUID userId, UUID addressId) {
         log.info("Service: setDefaultAddress for userId = {}", userId);
-        addressRepository.unsetAllDefaultsForCustomer(userId);
+        addressRepository.unsetAllDefaults(userId);
         addressRepository.setAddressAsDefault(addressId, userId);
     }
 }

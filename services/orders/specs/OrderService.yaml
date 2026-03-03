@@ -91,6 +91,21 @@ paths:
         '200':
           description: OK
 
+  # Kafka
+  /kafka/order_canceled:
+    post:
+      tags:
+        - AsyncApi
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCanceledEvent'
+      responses:
+        '200':
+          description: OK
+
 components:
   schemas:
     OrderCreateRequest:
@@ -182,6 +197,32 @@ components:
             items:
               items:
                 $ref: "#/components/schemas/OrderResponse"
+
+    # Events
+    OrderCanceledEvent:
+      type: object
+      required: [ id, customerId, items ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        shippingAddressId:
+          type: string
+          format: uuid
+        totalAmount:
+          type: number
+          format: double
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'
+        createdAt:
+          type: integer
+          format: int64
+
     PageResponse:
       type: object
       required: [ page, size, items ]

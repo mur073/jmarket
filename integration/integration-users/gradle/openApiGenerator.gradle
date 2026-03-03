@@ -1,0 +1,40 @@
+var spec = "$rootDir/specs/UserIntegration.yaml"
+var generatedSourcesDir = layout.buildDirectory.dir('generated').get().asFile.absolutePath
+
+openApiGenerate {
+    def base = "uz.uzumtech.jmarket.integration.users"
+
+    generatorName = "spring"
+    inputSpec = spec
+    outputDir = generatedSourcesDir
+    apiPackage = "${base}.api"
+    modelPackage = "${base}.dto"
+    modelNameSuffix = "Dto"
+    generateModelTests = false
+    generateApiTests = false
+    generateApiDocumentation = false
+
+    configOptions = [
+            useBeanValidation   : "true",
+            delegatePattern     : "true",
+            useJakartaValidation: "true",
+            useSpringBoot3      : "true",
+            generateBuilders    : "true"
+    ]
+
+    ignoreFileOverride = "$rootDir/.openapi-generator-ignore"
+}
+
+compileJava.dependsOn 'openApiGenerate'
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+    }
+    test {
+        java {
+            srcDir layout.buildDirectory.dir('generated/src/main/java')
+        }
+    }
+}

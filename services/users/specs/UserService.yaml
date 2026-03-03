@@ -60,6 +60,20 @@ paths:
             Business Logic Errors:
               - 999400: Method arguments not valid
               - 100000: Email is taken
+  /users/register/compensate:
+    post:
+      tags:
+        - Users
+      operationId: usersRegisterCompensate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterCompensateRequest"
+      responses:
+        '200':
+          description: OK
   /users/{profileIdType}/{profileId}:
     get:
       tags:
@@ -321,6 +335,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserRole"
+    RegisterCompensateRequest:
+      type: object
+      required: [ userId ]
+      properties:
+        userId:
+          type: string
+          format: uuid
 
     # Merchant schemas
     MerchantProfileResponse:

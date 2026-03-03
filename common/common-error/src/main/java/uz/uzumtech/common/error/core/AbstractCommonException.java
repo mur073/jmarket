@@ -1,5 +1,6 @@
 package uz.uzumtech.common.error.core;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
@@ -10,7 +11,12 @@ public abstract class AbstractCommonException extends RuntimeException {
 
     private Integer code;
     private String message;
+
+    @JsonDeserialize(using = IntegerToHttpStatusConverter.class)
     private HttpStatus status;
+
+    public AbstractCommonException() {
+    }
 
     public AbstractCommonException(Integer code, String message, HttpStatus status) {
         this.code = code;

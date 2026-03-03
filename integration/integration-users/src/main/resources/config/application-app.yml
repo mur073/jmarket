@@ -1,0 +1,5 @@
+app:
+  client:
+    users:
+      name: users-service
+      url: http://localhost:8000/api/v1

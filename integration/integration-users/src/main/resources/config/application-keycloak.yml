@@ -1,0 +1,6 @@
+keycloak:
+  server-url: http://localhost:8080
+  realm: jmarket
+  client-id: jmarket-backend-client
+  client-secret: ${KC_CLIENT_SECRET}
+  token-endpoint: "${keycloak.server-url}/realms/${keycloak.realm}/protocol/openid-connect/token"

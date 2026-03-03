@@ -8,6 +8,9 @@ import uz.uzumtech.common.error.core.ErrorData;
 @ToString
 public class CommonException extends AbstractCommonException {
 
+    public CommonException() {
+    }
+
     public CommonException(Integer code, String message, HttpStatus status) {
         super(code, message, status);
     }

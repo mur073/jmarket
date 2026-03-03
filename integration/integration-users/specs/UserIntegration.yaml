@@ -1,0 +1,394 @@
+openapi: 3.0.3
+info:
+  title: Users Integration API
+  version: 1.0.0
+  description: >
+    REST API for users service integration
+
+servers:
+  - url: https://localhost:8004
+
+paths:
+  # Common user routes
+  /users/me:
+    get:
+      tags:
+        - Users
+      operationId: usersGetMe
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        '400':
+          description: |
+            Business Logic Errors:
+              - 999400: Method arguments not valid
+        '404':
+          description: |
+            Business Logic Errors:
+              - 100005: User not found
+  /users/register:
+    post:
+      tags:
+        - Users
+      operationId: usersRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+        '400':
+          description: |
+            Business Logic Errors:
+              - 999400: Method arguments not valid
+              - 100000: Email is taken
+  /users/login:
+    post:
+      tags:
+        - Users
+      operationId: usersLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenResponse"
+
+  # Merchant routes
+  /users/merchants:
+    post:
+      tags:
+        - Merchants
+      operationId: onboardMerchant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MerchantCreateRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MerchantProfileResponse"
+        '400':
+          description: |
+            Business Logic Errors:
+              - 999400: Method arguments not valid
+              - 100005: User not found
+              - 100008: Merchant already exists
+  /users/merchant-profile:
+    get:
+      tags:
+        - Users
+      operationId: usersMerchantProfileGet
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MerchantProfileResponse"
+        '400':
+          description: |
+            Business Logic Errors:
+              - 999400: Method arguments not valid
+        '404':
+          description: |
+            Business Logic Errors:
+              - 100006: Merchant not found
+
+  # Customer routes
+  /users/customer-profile:
+    get:
+      tags:
+        - Users
+      operationId: usersCustomerProfileGet
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerProfileResponse"
+        '400':
+          description: |
+            Business Logic Errors:
+              - 999400: Method arguments not valid
+        '404':
+          description: |
+            Business Logic Errors:
+              - 100007: Customer not found
+  /users/addresses:
+    post:
+      tags:
+        - Customers
+      operationId: addCustomerAddress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressCreateRequest"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AddressResponse"
+        '400':
+          description: |
+            Business Logic Errors:
+              - 999400: Method arguments not valid
+              - 100009: At most 5 addresses allowed
+  /users/addresses/{addressId}:
+    delete:
+      tags:
+        - Customers
+      operationId: deleteCustomerAddress
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+  /users/addresses/{addressId}/default:
+    patch:
+      tags:
+        - Customers
+      operationId: setDefaultAddress
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [ code, message, status ]
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        status:
+          type: integer
+
+    # Common user schemas
+    RegisterRequest:
+      type: object
+      required: [ name, email, password ]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 64
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 24
+    LoginRequest:
+      type: object
+      required: [ email, password ]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 24
+    AuthTokenResponse:
+      type: object
+      required: [ access_token, refresh_token, token_type, expires_in ]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+        refresh_expires_in:
+          type: integer
+        token_type:
+          type: string
+        session_state:
+          type: string
+        scope:
+          type: string
+    UserResponse:
+      type: object
+      required: [ id, email, isEmailVerified, registeredAt, roles ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        isEmailVerified:
+          type: boolean
+        registeredAt:
+          type: integer
+          format: int64
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRole"
+
+    # Merchant schemas
+    MerchantProfileResponse:
+      type: object
+      required: [ id, userId, shopName, inn, legalAddress, verificationStatus, rating ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        shopName:
+          type: string
+        inn:
+          type: string
+        legalAddress:
+          type: string
+        verificationStatus:
+          $ref: "#/components/schemas/MerchantVerificationStatus"
+        rating:
+          type: number
+          format: double
+    MerchantCreateRequest:
+      type: object
+      required: [ shopName, inn, legalAddress ]
+      properties:
+        shopName:
+          type: string
+          minLength: 2
+        inn:
+          type: string
+          pattern: '^[0-9]{9,12}$'
+        legalAddress:
+          type: string
+    MerchantStatusUpdateRequest:
+      type: object
+      required: [ status ]
+      properties:
+        status:
+          $ref: "#/components/schemas/MerchantVerificationStatus"
+        rejectionReason:
+          type: string
+
+    # Customer schemas
+    CustomerProfileResponse:
+      type: object
+      required: [ id, userId, addresses ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressResponse"
+    AddressCreateRequest:
+      type: object
+      required: [ region, city, zipCode ]
+      properties:
+        region:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+        houseNumber:
+          type: string
+        zipCode:
+          type: string
+        isDefault:
+          type: boolean
+          default: false
+    AddressResponse:
+      type: object
+      required: [ id, region, city, zipCode, isDefault ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        region:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+        houseNumber:
+          type: string
+        zipCode:
+          type: string
+        isDefault:
+          type: boolean
+
+    # Enums
+    AccountStatus:
+      type: string
+      enum:
+        - active
+        - blocked
+        - archived
+    MerchantVerificationStatus:
+      type: string
+      enum:
+        - submitted
+        - verified
+        - rejected
+    UserRole:
+      type: string
+      enum:
+        - default
+        - admin
+        - merchant
+    ProfileIdType:
+      type: string
+      enum:
+        - merchant
+        - customer

@@ -57,10 +57,6 @@ dependencies {
     testImplementation "jakarta.servlet:jakarta.servlet-api"
     implementation "org.openapitools:jackson-databind-nullable:$jacksonNullableVersion"
 
-    // Jwt
-    implementation "io.jsonwebtoken:jjwt-api:$jjwtVersion"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl:$jjwtImplVersion"
-    runtimeOnly "io.jsonwebtoken:jjwt-jackson:$jjwtJacksonVersion"
 
     // Tools
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'

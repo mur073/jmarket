@@ -1,0 +1,19 @@
+server:
+  port: 8004
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: users-integration
+  jackson:
+    serialization:
+      indent-output: false
+  profiles:
+    include:
+      - security
+      - keycloak
+
+logging:
+  level:
+    org.springframework.security: trace

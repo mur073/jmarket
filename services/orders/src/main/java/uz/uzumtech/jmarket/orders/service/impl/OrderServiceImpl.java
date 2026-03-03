@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzumtech.common.client.products.ProductApiClient;
-import uz.uzumtech.common.client.products.dto.ExProductResponseDto;
 import uz.uzumtech.common.error.exception.CommonException;
 import uz.uzumtech.jmarket.orders.generated.dto.OrderCreateRequestDto;
 import uz.uzumtech.jmarket.orders.generated.dto.OrderItemRequestDto;
@@ -60,7 +59,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
     public OrderResponseDto createOrder(OrderCreateRequestDto request) {
         var currentUser = getCurrentUserOrThrow();
         var reserveRequest = request.getItems().stream().map(mapper::toProductReserveRequest).toList();
@@ -68,7 +66,9 @@ public class OrderServiceImpl implements OrderService {
 
         var order = mapper.toOrderEntity(currentUser, request);
 
-        products.forEach(product -> {
+        double totalAmount = 0.0;
+
+        for (var product : products) {
             var quantity = request.getItems().stream()
                     .filter(item -> product.getId().equals(item.getProductId()))
                     .findFirst()
@@ -79,9 +79,10 @@ public class OrderServiceImpl implements OrderService {
 
             order.addItem(orderItem);
             orderItem.setOrder(order);
-        });
 
-        var totalAmount = products.stream().map(ExProductResponseDto::getPrice).reduce(0.0, Double::sum);
+            totalAmount += (product.getPrice() * quantity);
+        }
+
         order.setTotalAmount((long) (totalAmount * 100));
 
         return mapper.toOrderDto(repository.save(order));

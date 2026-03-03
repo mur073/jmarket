@@ -13,7 +13,8 @@ public enum AppError implements ErrorData {
 
     ERROR_INVALID_CATEGORY(200000, "Invalid category"),
     ERROR_PRODUCT_NOT_FOUND(200001, "Product not found"),
-    ERROR_REVIEW_EXISTS(200002, "User already reviewed this product");
+    ERROR_REVIEW_EXISTS(200002, "User already reviewed this product"),
+    ERROR_PRODUCT_OUT_OF_STOCK(200003, "Product out of stock");
 
     private final Integer code;
     private final String message;

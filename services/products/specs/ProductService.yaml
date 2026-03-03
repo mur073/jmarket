@@ -125,6 +125,25 @@ paths:
       responses:
         '200':
           description: OK
+  /products/reserve:
+    post:
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductReserveRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductResponse'
 
   # Reviews
   /products/{productId}/reviews:
@@ -254,6 +273,19 @@ components:
           type: integer
         isActive:
           type: boolean
+    ProductReserveRequest:
+      type: array
+      items:
+        type: object
+        required: [ productId, quantity ]
+        properties:
+          productId:
+            type: string
+            format: uuid
+          quantity:
+            type: integer
+            minimum: 1
+            maximum: 10
     ReviewCreateRequest:
       type: object
       required: [ rating ]
@@ -305,6 +337,50 @@ components:
             items:
               items:
                 $ref: "#/components/schemas/ReviewResponse"
+    OrderItem:
+      type: object
+      required: [ id, productId, merchantId, quantity, price ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double
+
+    # Events
+    OrderCanceledEvent:
+      type: object
+      required: [ id, customerId, items ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        shippingAddressId:
+          type: string
+          format: uuid
+        totalAmount:
+          type: number
+          format: double
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        createdAt:
+          type: integer
+          format: int64
+
     PageResponse:
       type: object
       required: [ page, size, items ]

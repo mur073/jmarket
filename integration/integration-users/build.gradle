@@ -1,0 +1,103 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id "maven-publish"
+    id "org.openapi.generator" version "${openApiGeneratorVersion}"
+}
+
+group = 'uz.uzumtech.jmarket.integration'
+version = '1.0.0'
+description = 'integration-users'
+
+apply from: "./gradle/openApiGenerator.gradle"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+
+dependencies {
+    // Common
+    implementation "uz.uzumtech.common:common-error:${commonErrorVersion}"
+    implementation "uz.uzumtech.common:client-users:${clientUsersVersion}"
+
+    // Spring
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+
+    // KC
+    implementation "org.keycloak:keycloak-admin-client:$keycloakAdminVersion"
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+    implementation "jakarta.annotation:jakarta.annotation-api"
+    testImplementation "jakarta.servlet:jakarta.servlet-api"
+    implementation "org.openapitools:jackson-databind-nullable:$jacksonNullableVersion"
+
+    // Tools
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation "io.swagger.core.v3:swagger-models:$swaggerModelsVersion"
+    implementation "commons-codec:commons-codec:$commonsCodecVersion"
+    implementation "io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    implementation "org.mapstruct:mapstruct:$mapstructVersion"
+    implementation "org.jeasy:easy-random-core:$easyRandomVersion"
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructProcessorVersion"
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:$mapstructBindingVersion"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+def loadDotEnv() {
+    def envFile = file(".env")
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def parts = line.split("=", 2)
+            if (parts.size() == 2) {
+                System.setProperty(parts[0].trim(), parts[1].trim())
+            }
+        }
+    }
+}
+
+loadDotEnv()
+
+repositories {
+    maven {
+        url = uri(System.getProperty("NEXUS_REPOSITORY_URL"))
+        allowInsecureProtocol = true
+        credentials {
+            username = System.getProperty("NEXUS_USERNAME")
+            password = System.getProperty("NEXUS_PASSWORD")
+        }
+    }
+    mavenCentral()
+}

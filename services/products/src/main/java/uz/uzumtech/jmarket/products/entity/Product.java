@@ -59,6 +59,6 @@ public class Product {
     private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private Instant updatedAt;
 }

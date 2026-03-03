@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uz.uzumtech.common.error.exception.CommonException;
 import uz.uzumtech.users.generated.dto.ProfileIdTypeDto;
+import uz.uzumtech.users.generated.dto.RegisterCompensateRequestDto;
 import uz.uzumtech.users.generated.dto.RegisterRequestDto;
 import uz.uzumtech.users.generated.dto.UserResponseDto;
 import uz.uzumtech.users.mapper.UserMapper;
@@ -57,5 +58,13 @@ public class UserServiceImpl implements UserService {
 
         return user.map(mapper::toUserDto)
                 .orElseThrow(() -> new CommonException(ERROR_USER_NOT_FOUND));
+    }
+
+    @Override
+    @Transactional
+    public void cancelRegister(RegisterCompensateRequestDto request) {
+        log.info("Service: cancelRegister: ", request.getUserId());
+
+        userRepository.deleteById(request.getUserId());
     }
 }

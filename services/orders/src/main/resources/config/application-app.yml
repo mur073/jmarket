@@ -3,3 +3,7 @@ app:
     products:
       name: products-service
       url: http://localhost:8001/
+  data:
+    notifications:
+      text:
+        order-created: "Ваш заказ ID%s успешно создан и принят в обработку.\nОбщая сумма к оплате: %f сум.\n\nОбратите внимание: если оплата не поступит в течение 1 часа, заказ будет автоматически отменён."

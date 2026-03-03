@@ -1,6 +1,7 @@
 package uz.uzumtech.users.service;
 
 import uz.uzumtech.users.generated.dto.ProfileIdTypeDto;
+import uz.uzumtech.users.generated.dto.RegisterCompensateRequestDto;
 import uz.uzumtech.users.generated.dto.RegisterRequestDto;
 import uz.uzumtech.users.generated.dto.UserResponseDto;
 
@@ -13,4 +14,6 @@ public interface UserService {
     UserResponseDto register(RegisterRequestDto request);
 
     UserResponseDto getUserByProfileId(ProfileIdTypeDto profileIdType, UUID profileId);
+
+    void cancelRegister(RegisterCompensateRequestDto request);
 }

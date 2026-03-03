@@ -1,8 +1,8 @@
-var spec = "$rootDir/specs/NotificationService.yaml"
+var spec = "$rootDir/specs/ProductService.yaml"
 var generatedSourcesDir = layout.buildDirectory.dir('generated').get().asFile.absolutePath
 
 openApiGenerate {
-    def base = "uz.uzumtech.common.client.notifications"
+    def base = "uz.uzumtech.common.client.products"
 
     generatorName = "spring"
     inputSpec = spec

@@ -2,12 +2,9 @@ server:
   port: 8000
   servlet:
     context-path: /api/v1
-
-feign:
-  client:
-    config:
-      notifications-client:
-        loggerLevel = full
+  tomcat:
+    threads:
+      max: 50
 
 spring:
   application:
@@ -15,6 +12,8 @@ spring:
   jackson:
     serialization:
       indent-output: false
+  main:
+    lazy-initialization: true
   profiles:
     include:
       - db

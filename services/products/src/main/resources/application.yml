@@ -2,6 +2,9 @@ server:
   port: 8001
   servlet:
     context-path: /api/v1
+  tomcat:
+    threads:
+      max: 50
 
 spring:
   application:
@@ -13,3 +16,4 @@ spring:
     include:
       - security
       - db
+      - kafka

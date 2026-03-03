@@ -1,0 +1,15 @@
+spring:
+  config:
+    activate:
+      on-profile: kafka
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      properties:
+        spring.json.trusted.packages: "*"
+      group-id: products-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    topic:
+      order-canceled: ORDER_CANCELED

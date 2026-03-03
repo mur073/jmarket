@@ -16,6 +16,9 @@ openApiGenerate {
     generateApiDocumentation = false
 
     configOptions = [
+            library          : "spring-cloud",
+            useResponseEntity: "false",
+            interfaceOnly    : "true",
             useFeignClientUrl: "true",
             useSpringBoot3   : "true",
             generateBuilders : "true"

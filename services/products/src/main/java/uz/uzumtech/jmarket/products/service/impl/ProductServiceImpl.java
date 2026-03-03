@@ -10,6 +10,7 @@ import uz.uzumtech.common.error.exception.CommonException;
 import uz.uzumtech.jmarket.products.entity.Product;
 import uz.uzumtech.jmarket.products.generated.dto.ProductCreateRequestDto;
 import uz.uzumtech.jmarket.products.generated.dto.ProductPageResponseDto;
+import uz.uzumtech.jmarket.products.generated.dto.ProductReserveRequestInnerDto;
 import uz.uzumtech.jmarket.products.generated.dto.ProductResponseDto;
 import uz.uzumtech.jmarket.products.generated.dto.ProductUpdateRequestDto;
 import uz.uzumtech.jmarket.products.generated.dto.ReviewCreateRequestDto;
@@ -21,12 +22,15 @@ import uz.uzumtech.jmarket.products.repository.ProductRepository;
 import uz.uzumtech.jmarket.products.repository.ReviewRepository;
 import uz.uzumtech.jmarket.products.service.ProductService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static ch.qos.logback.core.util.StringUtil.notNullNorEmpty;
 import static java.util.Objects.nonNull;
 import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_INVALID_CATEGORY;
 import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_PRODUCT_NOT_FOUND;
+import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_PRODUCT_OUT_OF_STOCK;
 import static uz.uzumtech.jmarket.products.constant.AppError.ERROR_REVIEW_EXISTS;
 import static uz.uzumtech.jmarket.products.security.SecurityUtils.getCurrentUserOrThrow;
 
@@ -104,6 +108,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
+    public void increaseQuantity(UUID productId, int quantity) {
+        log.info("Service: increaseQuantity for product = {}", productId);
+        var productOpt = productRepository.findById(productId);
+
+        if (productOpt.isEmpty()) {
+            log.debug("Service: increaseQuantity: product not found, skipping");
+            return;
+        }
+
+        productOpt.get().setQuantityInStock(
+                productOpt.get().getQuantityInStock() + quantity);
+    }
+
+    @Override
     public ProductPageResponseDto getProducts(UUID categoryId, UUID merchantId, Integer page, Integer size) {
         log.info("Service: getProducts by categoryId = {} and merchantId = {}", categoryId, merchantId);
         var pageRequest = PageRequest.of(page, size);
@@ -151,6 +170,29 @@ public class ProductServiceImpl implements ProductService {
         review.setProduct(product);
 
         return mapper.toReviewDto(reviewRepository.save(review));
+    }
+
+    @Override
+    @Transactional
+    public List<ProductResponseDto> reserveProducts(List<ProductReserveRequestInnerDto> request) {
+        List<Product> result = new ArrayList<>();
+
+        for (var productReq : request) {
+            log.debug("Service: reserveProducts for productId = {}", productReq.getProductId());
+
+            var effected = productRepository.reserveProduct(productReq.getProductId(), productReq.getQuantity());
+
+            if (effected == 0) {
+                throw new CommonException(ERROR_PRODUCT_OUT_OF_STOCK);
+            }
+
+            var product = productRepository.findById(productReq.getProductId()).orElseThrow();
+            result.add(product);
+        }
+
+        return result.stream()
+                .map(mapper::toProductDto)
+                .toList();
     }
 
     private Specification<Product> getProductsSpecs(UUID categoryId, UUID merchantId) {
